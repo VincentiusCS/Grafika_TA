@@ -19,6 +19,11 @@ def process_input(event, obj2d, obj3d):
                     obj2d.scale_obj(1.1)
                 else:
                     obj2d.scale(1.1)
+            elif event.key == pygame.K_a:  # Shortcut untuk scale down 2D
+                if hasattr(obj2d, "scale_obj"):
+                    obj2d.scale_obj(0.9)
+                else:
+                    obj2d.scale(0.9)
 
         if obj3d:
             if event.key == pygame.K_a:
@@ -37,3 +42,13 @@ def process_input(event, obj2d, obj3d):
                     obj3d.scale_obj(1.1)
                 else:
                     obj3d.scale(1.1)
+            elif event.key == pygame.K_z:  # Shortcut untuk scale down 3D
+                if hasattr(obj3d, "scale_obj"):
+                    obj3d.scale_obj(0.9)
+                else:
+                    obj3d.scale(0.9)
+            elif event.key == pygame.K_c:  # Tambahkan shortcut lain untuk scale down 3D
+                if hasattr(obj3d, "scale_obj"):
+                    obj3d.scale_obj(0.9)
+                else:
+                    obj3d.scale(0.9)
