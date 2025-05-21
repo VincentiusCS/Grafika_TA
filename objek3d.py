@@ -3,7 +3,7 @@ from OpenGL.GLU import *
 import math
 
 class Talenan3D:
-    def __init__(self):  # <-- Perbaiki dari _init_ ke __init__
+    def __init__(self):
         self.width = 2.4
         self.height = 0.15
         self.depth = 1.6
@@ -12,42 +12,137 @@ class Talenan3D:
         self.angle_y = 15.0
         self.scale_factor = 1.0
         self.color = (0.85, 0.7, 0.4)
+        self.corner_radius = 0.18
+        self.hole_radius = 0.13
+        self.hole_offset_x = -self.width / 2 + self.corner_radius + 0.12
+        self.hole_offset_y = self.depth / 2 - self.corner_radius - 0.12
 
     def draw(self):
         w = self.width / 2 * self.scale_factor
         h = self.height / 2 * self.scale_factor
         d = self.depth / 2 * self.scale_factor
-
-        vertices = [
-            [ w,  h, -d],  # 0 kanan atas belakang
-            [ w, -h, -d],  # 1 kanan bawah belakang
-            [-w, -h, -d],  # 2 kiri bawah belakang
-            [-w,  h, -d],  # 3 kiri atas belakang
-            [ w,  h,  d],  # 4 kanan atas depan
-            [ w, -h,  d],  # 5 kanan bawah depan
-            [-w, -h,  d],  # 6 kiri bawah depan
-            [-w,  h,  d],  # 7 kiri atas depan
-        ]
-        faces = [
-            [0, 1, 2, 3],  # Belakang
-            [4, 5, 6, 7],  # Depan
-            [0, 4, 5, 1],  # Kanan
-            [3, 7, 6, 2],  # Kiri
-            [0, 3, 7, 4],  # Atas
-            [1, 2, 6, 5],  # Bawah
-        ]
+        r = min(self.corner_radius * self.scale_factor, w, d)
 
         glPushMatrix()
         glTranslatef(*self.position)
         glRotatef(self.angle_x, 1, 0, 0)
         glRotatef(self.angle_y, 0, 1, 0)
         glColor3f(*self.color)
-        for face in faces:
-            glBegin(GL_QUADS)
-            for vertex in face:
-                glVertex3fv(vertices[vertex])
-            glEnd()
+
+        # Permukaan atas dan bawah (benar-benar ring)
+        self.draw_rounded_rect_ring_with_hole(z=+h, w=w, d=d, r=r, normal=(0,0,1))
+        self.draw_rounded_rect_ring_with_hole(z=-h, w=w, d=d, r=r, normal=(0,0,-1), flip_hole=True)
+
+        # Sisi talenan
+        self.draw_rounded_sides(w, h, d, r)
+        # Dinding dalam lubang
+        self.draw_hole_wall(w, h, d)
+
         glPopMatrix()
+
+    def draw_rounded_rect_ring_with_hole(self, z, w, d, r, normal=(0,0,1), steps=10, hole_steps=40, flip_hole=False):
+        ''' Gambar ring permukaan: outer = rounded rectangle, inner = lingkaran lubang '''
+        # 1. Outer loop (rounded rectangle)
+        corners = [
+            (+w-r, +d-r),
+            (-w+r, +d-r),
+            (-w+r, -d+r),
+            (+w-r, -d+r)
+        ]
+        angles = [
+            (0.0, math.pi/2),        # kanan atas
+            (math.pi/2, math.pi),    # kiri atas
+            (math.pi, 3*math.pi/2),  # kiri bawah
+            (3*math.pi/2, 2*math.pi) # kanan bawah
+        ]
+        outer = []
+        for i in range(4):
+            cx, cy = corners[i]
+            theta0, theta1 = angles[i]
+            for j in range(steps+1):
+                theta = theta0 + (theta1-theta0)*j/steps
+                x = cx + r * math.cos(theta)
+                y = cy + r * math.sin(theta)
+                outer.append((x, y))
+        # 2. Inner loop (lingkaran lubang)
+        hole_x = self.hole_offset_x * self.scale_factor
+        hole_y = self.hole_offset_y * self.scale_factor
+        hole_r = self.hole_radius * self.scale_factor
+        inner = []
+        for i in range(hole_steps+1):
+            t = (i if not flip_hole else (hole_steps-i))
+            theta = 2 * math.pi * t / hole_steps
+            x = hole_x + hole_r * math.cos(theta)
+            y = hole_y + hole_r * math.sin(theta)
+            inner.append((x, y))
+
+        # 3. Gambar ring antara outer dan inner
+        N = max(len(outer), len(inner))
+        glBegin(GL_QUAD_STRIP)
+        for i in range(N):
+            idx_outer = i % len(outer)
+            idx_inner = i % len(inner)
+            glNormal3f(*normal)
+            glVertex3f(outer[idx_outer][0], outer[idx_outer][1], z)
+            glVertex3f(inner[idx_inner][0], inner[idx_inner][1], z)
+        # Tutup kembali ke titik awal
+        glNormal3f(*normal)
+        glVertex3f(outer[0][0], outer[0][1], z)
+        glVertex3f(inner[0][0], inner[0][1], z)
+        glEnd()
+
+    def draw_rounded_sides(self, w, h, d, r, steps=12):
+        # Sisi panjang/lebar dan sudut
+        self.draw_side_strip((+w-r, +d), (-w+r, +d), +h, -h, r, 0.0, math.pi/2, steps)
+        self.draw_side_strip((+w-r, -d), (-w+r, -d), +h, -h, r, 3*math.pi/2, 2*math.pi, steps)
+        self.draw_side_strip((-w, +d-r), (-w, -d+r), +h, -h, r, math.pi/2, math.pi, steps)
+        self.draw_side_strip((+w, +d-r), (+w, -d+r), +h, -h, r, 2*math.pi, 0.0, steps)
+        self.draw_corner_side(+w-r, +d-r, +h, -h, r, 0.0, math.pi/2, steps)
+        self.draw_corner_side(-w+r, +d-r, +h, -h, r, math.pi/2, math.pi, steps)
+        self.draw_corner_side(-w+r, -d+r, +h, -h, r, math.pi, 3*math.pi/2, steps)
+        self.draw_corner_side(+w-r, -d+r, +h, -h, r, 3*math.pi/2, 2*math.pi, steps)
+
+    def draw_side_strip(self, p1, p2, h_top, h_bot, r, start_angle, end_angle, steps):
+        x1, y1 = p1
+        x2, y2 = p2
+        glBegin(GL_QUAD_STRIP)
+        for i in range(steps+1):
+            t = i / steps
+            x = x1 + (x2-x1) * t
+            y = y1 + (y2-y1) * t
+            glNormal3f(x, y, 0)
+            glVertex3f(x, y, h_top)
+            glVertex3f(x, y, h_bot)
+        glEnd()
+
+    def draw_corner_side(self, cx, cy, h_top, h_bot, r, angle0, angle1, steps):
+        glBegin(GL_QUAD_STRIP)
+        for i in range(steps+1):
+            theta = angle0 + (angle1-angle0)*i/steps
+            x = cx + r*math.cos(theta)
+            y = cy + r*math.sin(theta)
+            glNormal3f(math.cos(theta), math.sin(theta), 0)
+            glVertex3f(x, y, h_top)
+            glVertex3f(x, y, h_bot)
+        glEnd()
+
+    def draw_hole_wall(self, w, h, d, hole_steps=40):
+        # Dinding dalam lubang (silinder)
+        x = self.hole_offset_x * self.scale_factor
+        y = self.hole_offset_y * self.scale_factor
+        z_top = h
+        z_bot = -h
+        r = self.hole_radius * self.scale_factor
+        glColor3f(0.3, 0.23, 0.11)
+        glBegin(GL_QUAD_STRIP)
+        for i in range(hole_steps+1):
+            theta = 2 * math.pi * i / hole_steps
+            dx = r * math.cos(theta)
+            dy = r * math.sin(theta)
+            glNormal3f(dx, dy, 0)
+            glVertex3f(x + dx, y + dy, z_top)
+            glVertex3f(x + dx, y + dy, z_bot)
+        glEnd()
 
     def translate(self, dx, dy, dz):
         self.position[0] += dx

@@ -57,11 +57,11 @@ class UShape2D:
             glVertex2f(x_inner, y_inner)
         glEnd()
 
-        # 4. Border (opsional)
+        # 4. Border (outline/bingkai tebal)
         glColor3f(*self.border_color)
-        glLineWidth(2)
+        glLineWidth(3)
+        # Kiri luar
         glBegin(GL_LINE_STRIP)
-        # Kiri bawah ke atas
         glVertex2f(-outer_r, -height)
         glVertex2f(-outer_r, outer_r)
         # arc luar
@@ -70,13 +70,12 @@ class UShape2D:
             x_outer = outer_r * math.cos(angle)
             y_outer = outer_r * math.sin(angle) + outer_r
             glVertex2f(x_outer, y_outer)
-        # kanan atas ke bawah
         glVertex2f(outer_r, outer_r)
         glVertex2f(outer_r, -height)
         glEnd()
 
+        # Kanan dalam
         glBegin(GL_LINE_STRIP)
-        # kanan bawah ke atas dalam
         glVertex2f(inner_r, -height)
         glVertex2f(inner_r, outer_r)
         # arc dalam
@@ -85,7 +84,6 @@ class UShape2D:
             x_inner = inner_r * math.cos(angle)
             y_inner = inner_r * math.sin(angle) + outer_r
             glVertex2f(x_inner, y_inner)
-        # kiri atas dalam ke bawah
         glVertex2f(-inner_r, outer_r)
         glVertex2f(-inner_r, -height)
         glEnd()
@@ -141,8 +139,9 @@ class Leaf2D:
             glVertex2f(v[0], v[1])
         glEnd()
 
-        # Gambar border
+        # Gambar border daun (outline)
         glColor3f(0, 0.4, 0)
+        glLineWidth(2.5)
         glBegin(GL_LINE_LOOP)
         for v in self.vertices:
             glVertex2f(v[0], v[1])
@@ -241,7 +240,7 @@ class FanShape2D:
         glColor3f(0.0, 0.0, 0.0)
         glLineWidth(2.0)
 
-        # Lingkaran luar
+        # Lingkaran luar (border setengah lingkaran atas)
         glBegin(GL_LINE_STRIP)
         for i in range(self.segments + 1):
             theta = pi * i / self.segments
@@ -250,7 +249,7 @@ class FanShape2D:
             glVertex2f(x, y)
         glEnd()
 
-        # Lengkungan putih bawah
+        # Lengkungan putih bawah (border)
         glBegin(GL_LINE_STRIP)
         for i in range(self.segments + 1):
             theta = pi * i / self.segments
@@ -259,7 +258,7 @@ class FanShape2D:
             glVertex2f(x, y)
         glEnd()
 
-        # Handle
+        # Handle (border)
         glBegin(GL_LINE_LOOP)
         glVertex2f(-handle_width / 2, -top_offset)
         glVertex2f(handle_width / 2, -top_offset)
