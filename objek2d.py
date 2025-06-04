@@ -59,11 +59,18 @@ class UShape2D:
             glVertex2f(x_inner, y_inner)
         glEnd()
 
-        # Border luar
+        # Border - DIPERBAIKI: Pisahkan menjadi segmen terpisah
         glColor3f(*self.border_color)
         glLineWidth(3)
+        
+        # Border kiri (dari bawah ke atas)
         glBegin(GL_LINE_STRIP)
         glVertex2f(-outer_r, -height)
+        glVertex2f(-outer_r, outer_r)
+        glEnd()
+        
+        # Border lengkungan luar
+        glBegin(GL_LINE_STRIP)
         glVertex2f(-outer_r, outer_r)
         for i in range(arc_steps + 1):
             angle = pi - (i * pi / arc_steps)
@@ -71,20 +78,35 @@ class UShape2D:
             y = outer_r * sin(angle) + outer_r
             glVertex2f(x, y)
         glVertex2f(outer_r, outer_r)
+        glEnd()
+        
+        # Border kanan (dari atas ke bawah)
+        glBegin(GL_LINE_STRIP)
+        glVertex2f(outer_r, outer_r)
         glVertex2f(outer_r, -height)
         glEnd()
 
-        # Border dalam
+        # Border dalam - bagian kiri (dari bawah ke atas)
         glBegin(GL_LINE_STRIP)
-        glVertex2f(inner_r, -height)
-        glVertex2f(inner_r, outer_r)
+        glVertex2f(-inner_r, -height)
+        glVertex2f(-inner_r, outer_r)
+        glEnd()
+        
+        # Border lengkungan dalam
+        glBegin(GL_LINE_STRIP)
+        glVertex2f(-inner_r, outer_r)
         for i in range(arc_steps + 1):
             angle = pi - (i * pi / arc_steps)
             x = inner_r * cos(angle)
             y = inner_r * sin(angle) + outer_r
             glVertex2f(x, y)
-        glVertex2f(-inner_r, outer_r)
-        glVertex2f(-inner_r, -height)
+        glVertex2f(inner_r, outer_r)
+        glEnd()
+        
+        # Border dalam - bagian kanan (dari atas ke bawah)
+        glBegin(GL_LINE_STRIP)
+        glVertex2f(inner_r, outer_r)
+        glVertex2f(inner_r, -height)
         glEnd()
 
         glPopMatrix()
@@ -143,9 +165,7 @@ class Leaf2D:
         glEnd()
 
         # Tulang daun utama
-        vein_color = getattr(self, 'vein_color', (1.0, 1.0, 1.0))
-        glColor3f(*vein_color)
-        glLineWidth(4)
+        glColor3f(0.1, 0.3, 0.1)
         glBegin(GL_LINES)
         glVertex2f(0.0, 1.0)
         glVertex2f(0.0, -1.0)
@@ -158,13 +178,11 @@ class Leaf2D:
             ([0.1, 0.7], [0.5, 0.6]), ([0.1, 0.4], [0.6, 0.3]), ([0.1, 0.1], [0.65, 0.0]),
             ([0.1, -0.2], [0.6, -0.3]), ([0.1, -0.5], [0.5, -0.6]),
         ]
-        glLineWidth(3)
         glBegin(GL_LINES)
         for start, end in veins:
             glVertex2f(*start)
             glVertex2f(*end)
         glEnd()
-        glLineWidth(1)
 
         glPopMatrix()
 

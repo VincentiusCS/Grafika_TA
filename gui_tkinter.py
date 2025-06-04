@@ -49,24 +49,8 @@ class ObjectController:
         self.opengl_thread.start()
 
     def create_widgets(self):
-        # Gunakan Canvas + Scrollbar untuk panel utama agar bisa discroll
-        container = ttk.Frame(self.root)
-        container.pack(fill=tk.BOTH, expand=True)
-        canvas = tk.Canvas(container)
-        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
-        scrollable_frame = ttk.Frame(canvas)
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
-            )
-        )
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        main_frame = scrollable_frame
+        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame.pack(fill=tk.BOTH, expand=True)
 
         # Daftar objek & tombol duplikat/hapus
         obj_frame = ttk.LabelFrame(main_frame, text="Objek", padding="10")
@@ -216,13 +200,6 @@ class ObjectController:
         if warna and warna[1]:
             rgb = self.rgb_to_float(warna[1])
             self.state["objects"][idx]["colors"]["fill"] = rgb
-            # Jika objek daun, set warna tulang daun otomatis kontras
-            if self.state["objects"][idx]["type"] == "leaf":
-                # Jika fill terlalu terang, vein hitam, jika gelap vein putih
-                if sum(rgb) > 2.2:
-                    self.state["objects"][idx]["colors"]["vein"] = (0,0,0)
-                else:
-                    self.state["objects"][idx]["colors"]["vein"] = (1,1,1)
 
     def pilih_warna_border(self):
         idx = self.state["selected_index"]

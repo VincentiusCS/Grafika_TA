@@ -169,10 +169,6 @@ def run_opengl_window(current_state):
                     obj.top_color = colors.get("top", (0.48, 0.37, 0.17))
                 if hasattr(obj, "bottom_color"):
                     obj.bottom_color = colors.get("bottom", (0.35, 0.22, 0.11))
-            if obj_type == "leaf":
-                vein_color = colors.get("vein", (1.0, 1.0, 1.0))
-                if hasattr(obj, "vein_color"):
-                    obj.vein_color = vein_color
 
             if obj_type in ["ushape", "leaf", "fan"]:
                 obj.set_position(pos[:2])
@@ -185,19 +181,7 @@ def run_opengl_window(current_state):
 
             obj.draw()
             # Highlight objek terpilih
-            if i == current_state["selected_index"]:
-                glPushAttrib(GL_CURRENT_BIT)
-                glColor3f(1, 0, 0)
-                glLineWidth(4)
-                minx, miny, minz = pos[0]-1.5*scale, pos[1]-1.0*scale, pos[2]-0.1*scale
-                maxx, maxy, maxz = pos[0]+1.5*scale, pos[1]+1.0*scale, pos[2]+0.1*scale
-                glBegin(GL_LINE_LOOP)
-                glVertex3f(minx, miny, minz)
-                glVertex3f(maxx, miny, minz)
-                glVertex3f(maxx, maxy, minz)
-                glVertex3f(minx, maxy, minz)
-                glEnd()
-                glPopAttrib()
+           
 
         pygame.display.flip()
         clock.tick(60)
