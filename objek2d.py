@@ -1,6 +1,9 @@
 from OpenGL.GL import *
 from math import pi, cos, sin, radians
 
+from OpenGL.GL import *
+from math import pi, cos, sin, radians
+
 class UShape2D:
     def __init__(self):
         self.x, self.y = 0.0, 0.0
@@ -86,7 +89,7 @@ class UShape2D:
         glVertex2f(outer_r, -height)
         glEnd()
 
-        # Border dalam - bagian kiri (dari bawah ke atas)
+        # Border dalam kiri (dari bawah ke atas)
         glBegin(GL_LINE_STRIP)
         glVertex2f(-inner_r, -height)
         glVertex2f(-inner_r, outer_r)
@@ -103,7 +106,7 @@ class UShape2D:
         glVertex2f(inner_r, outer_r)
         glEnd()
         
-        # Border dalam - bagian kanan (dari atas ke bawah)
+        # Border dalam kanan (dari atas ke bawah)
         glBegin(GL_LINE_STRIP)
         glVertex2f(inner_r, outer_r)
         glVertex2f(inner_r, -height)
@@ -165,7 +168,9 @@ class Leaf2D:
         glEnd()
 
         # Tulang daun utama
-        glColor3f(0.1, 0.3, 0.1)
+        vein_color = getattr(self, 'vein_color', (1.0, 1.0, 1.0))
+        glColor3f(*vein_color)
+        glLineWidth(4)
         glBegin(GL_LINES)
         glVertex2f(0.0, 1.0)
         glVertex2f(0.0, -1.0)
@@ -178,11 +183,13 @@ class Leaf2D:
             ([0.1, 0.7], [0.5, 0.6]), ([0.1, 0.4], [0.6, 0.3]), ([0.1, 0.1], [0.65, 0.0]),
             ([0.1, -0.2], [0.6, -0.3]), ([0.1, -0.5], [0.5, -0.6]),
         ]
+        glLineWidth(3)
         glBegin(GL_LINES)
         for start, end in veins:
             glVertex2f(*start)
             glVertex2f(*end)
         glEnd()
+        glLineWidth(1)
 
         glPopMatrix()
 
